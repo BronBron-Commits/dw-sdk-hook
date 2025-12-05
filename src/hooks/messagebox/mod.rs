@@ -1,51 +1,48 @@
-use windows_sys::Win32::UI::WindowsAndMessaging::{
-    MessageBoxA, MB_OK,
-};
+use windows_sys::Win32::Foundation::HWND;
+use windows_sys::Win32::System::LibraryLoader::{GetModuleHandleA, LoadLibraryA, GetProcAddress};
 
-use std::ffi::c_char;
-use std::ptr;
+use std::ffi::c_void;
 
-use crate::hooks::inline_hook::InlineHook;
+use crate::hooks::iat_hook::hook_iat;
+use crate::util::log;
 
-static mut ORIGINAL_MESSAGEBOX: Option<InlineHook> = None;
+static mut ORIG: Option<unsafe extern "system" fn(HWND, *const i8, *const i8, u32) -> i32> = None;
 
-extern "system" fn my_messagebox_a(
-    hwnd: *mut c_char,
-    text: *mut c_char,
-    caption: *mut c_char,
-    msg_type: u32,
+unsafe extern "system" fn my_MessageBoxA(
+    hwnd: HWND,
+    text: *const i8,
+    caption: *const i8,
+    typ: u32,
 ) -> i32 {
-    crate::util::log("MessageBoxA intercepted via inline hook");
+    log("MessageBoxA intercepted via IAT hook");
 
-    // call original via trampoline
-    unsafe {
-        let tramp = ORIGINAL_MESSAGEBOX.as_ref().unwrap().trampoline();
+    let new_text = b"IAT Hook Successful!\0".as_ptr() as *const i8;
+    let new_caption = b"dw-sdk-hook\0".as_ptr() as *const i8;
 
-        let func: extern "system" fn(
-            *mut c_char,
-            *mut c_char,
-            *mut c_char,
-            u32
-        ) -> i32 = std::mem::transmute(tramp);
-
-        func(
-            hwnd,
-            b"Inline Hook Successful!\0".as_ptr() as *mut c_char,
-            b"dw-sdk-hook\0".as_ptr() as *mut c_char,
-            MB_OK,
-        )
+    if let Some(orig) = ORIG {
+        return orig(hwnd, new_text, new_caption, typ);
     }
+    0
 }
 
 pub unsafe fn install() {
-    crate::util::log("Installing inline MessageBoxA hook...");
+    log("Installing IAT MessageBoxA hook");
 
-    let target = MessageBoxA as usize as *mut u8;
-    let detour = my_messagebox_a as usize as *mut u8;
+    let module = GetModuleHandleA(std::ptr::null());
+    if module == 0 {
+        log("GetModuleHandleA failed");
+        return;
+    }
 
-    let hook = InlineHook::new(target, detour);
+    let h_user32 = LoadLibraryA(b"user32.dll\0".as_ptr());
+    let orig = GetProcAddress(h_user32, b"MessageBoxA\0".as_ptr());
 
-    ORIGINAL_MESSAGEBOX = Some(hook);
+    ORIG = Some(std::mem::transmute(orig));
 
-    crate::util::log("MessageBoxA inline hook installed");
+    hook_iat(
+        module as *mut u8,
+        "user32.dll",
+        "MessageBoxA",
+        my_MessageBoxA as *mut c_void
+    );
 }

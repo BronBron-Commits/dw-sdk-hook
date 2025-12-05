@@ -1,8 +1,11 @@
-pub fn initialize() {
-    crate::util::log("dw-sdk-hook loaded into process");
-    crate::hooks::install_all();
-}
+use crate::util::log;
 
-pub fn shutdown() {
-    crate::util::log("dw-sdk-hook shutting down");
+pub fn init() {
+    log("dw-sdk-hook loader init start");
+
+    unsafe {
+        crate::hooks::install_all();
+    }
+
+    log("dw-sdk-hook loader init done");
 }

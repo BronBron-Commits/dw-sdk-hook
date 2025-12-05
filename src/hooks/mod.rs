@@ -1,10 +1,6 @@
-mod messagebox;
-pub mod inline_hook;
+pub mod iat_hook;
+pub mod messagebox;
 
-pub fn install_all() {
-    crate::util::log("install_all() called");
-
-    unsafe {
-        messagebox::install();
-    }
+pub unsafe fn install_all() {
+    messagebox::install();
 }
