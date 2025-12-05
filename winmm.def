@@ -1,0 +1,5 @@
+LIBRARY WINMM
+EXPORTS
+    timeGetTime
+    timeBeginPeriod
+    timeEndPeriod
