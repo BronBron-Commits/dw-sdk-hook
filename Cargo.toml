@@ -10,5 +10,12 @@ crate-type = ["cdylib"]
 windows-sys = { version = "0.52", features = [
     "Win32_Foundation",
     "Win32_System_SystemServices",
-    "Win32_System_LibraryLoader"
+    "Win32_System_LibraryLoader",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Memory",
+    "Win32_System_Diagnostics_ToolHelp"
 ] }
+
+region = "3.0"
+libudis86-sys = "0.2"
+libc = "0.2"
