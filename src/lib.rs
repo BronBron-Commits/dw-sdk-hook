@@ -1,19 +1,12 @@
-#[export_name = "timeGetTime"]
-pub extern "system" fn time_get_time() -> u32 {
-    12345
+use std::ffi::c_void;
+
+#[no_mangle]
+pub extern "system" fn timeGetTime() -> u32 {
+    // Return a fake tick count. This can be incremented if needed.
+    42
 }
 
-#[export_name = "timeBeginPeriod"]
-pub extern "system" fn time_begin_period(_p: u32) -> u32 {
-    0
-}
-
-#[export_name = "timeEndPeriod"]
-pub extern "system" fn time_end_period(_p: u32) -> u32 {
-    0
-}
-
-#[export_name = "DllMain"]
-pub extern "system" fn dll_main() -> u32 {
-    1
+#[no_mangle]
+pub extern "system" fn DllMain(_: *mut c_void, _: u32, _: *mut c_void) -> i32 {
+    1 // TRUE
 }
