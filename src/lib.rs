@@ -1,13 +1,19 @@
-mod util;
-mod loader;
-mod hooks;
+#[export_name = "timeGetTime"]
+pub extern "system" fn time_get_time() -> u32 {
+    12345
+}
 
-use windows_sys::Win32::Foundation::BOOL;
+#[export_name = "timeBeginPeriod"]
+pub extern "system" fn time_begin_period(_p: u32) -> u32 {
+    0
+}
 
-#[no_mangle]
-pub extern "system" fn DllMain(_hinst: usize, reason: u32, _reserved: usize) -> BOOL {
-    if reason == 1 {
-        unsafe { loader::init(); }
-    }
+#[export_name = "timeEndPeriod"]
+pub extern "system" fn time_end_period(_p: u32) -> u32 {
+    0
+}
+
+#[export_name = "DllMain"]
+pub extern "system" fn dll_main() -> u32 {
     1
 }
